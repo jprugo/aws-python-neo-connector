@@ -1,0 +1,52 @@
+org: jupygoat
+app: aws-python-neo-connector
+service: aws-python-neo-connector
+
+frameworkVersion: "2"
+
+provider:
+  name: aws
+  runtime: python3.8
+  lambdaHashingVersion: 20201221
+
+plugins:
+  - serverless-python-requirements
+layers:
+  NeoConnector:
+    name: layer-${sls:stage}-NeoConnector
+    description: Add NeoConnector library to your lambda function
+    package:
+      artifact: src/layers/neo-connector-layer.zip
+    compatibleRuntimes:
+      - python3.8
+    compatibleArchitectures:
+      - x86_64
+
+functions:
+  testNeoConnector:
+    handler: src/lambdas/testNeoConnector.handler
+    name: func-${sls:stage}-testNeoConnector
+    layers:
+      - arn:aws:lambda:us-east-1:770693421928:layer:Klayers-python38-pandas:38
+      - arn:aws:lambda:us-east-1:898466741470:layer:psycopg2-py38:2
+      - {Ref: NeoConnectorLambdaLayer}
+
+resources:
+  Resources:
+    testNeoConnectorRole:
+      Type: AWS::IAM::Role
+      Properties:
+        Path: /
+        RoleName: iam-${sls:stage}-test-neo-connector
+        AssumeRolePolicyDocument:
+          Version: "2012-10-17"
+          Statement:
+            - Effect: Allow
+              Principal:
+                Service:
+                  - lambda.amazonaws.com
+              Action: sts:AssumeRole
+        ManagedPolicyArns:
+          - arn:aws:iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole
+          - arn:aws:iam::aws:policy/SecretsManagerReadWrite
+          - arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess
