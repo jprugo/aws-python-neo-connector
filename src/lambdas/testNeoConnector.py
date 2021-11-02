@@ -1,5 +1,6 @@
 import json
 import signal
+import time
 # from layers
 from NeoConnector.DBConnector import DBConnector
 from NeoConnector.extras import ConnectionException, NoSuchConnectionException, QueryingException
@@ -37,6 +38,8 @@ def handler(event, context):
         if len(response) == 0:
             status_code = 204,
             response = "There is no content to show"
+        # testing the timeout response
+        time.sleep(3)
     except (QueryingException, NoSuchConnectionException, AttributeError) as e:
         response = str(e)
         status_code = 502

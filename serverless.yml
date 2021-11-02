@@ -21,6 +21,34 @@ layers:
       artifact: src/layers/neo-connector-layer.zip
     compatibleRuntimes:
       - python3.8
+      - python3.9
+    compatibleArchitectures:
+      - x86_64
+  Pandas:
+    name: layer-${sls:stage}-pandas
+    package:
+      artifact: src/layers/pandas-layer.zip
+    compatibleRuntimes:
+      - python3.8
+      - python3.9
+    compatibleArchitectures:
+      - x86_64
+  Psycopg2:
+    name: layer-${sls:stage}-psycopg2
+    package:
+      artifact: src/layers/psycopg2-layer.zip
+    compatibleRuntimes:
+      - python3.8
+      - python3.9
+    compatibleArchitectures:
+      - x86_64
+  PyodbcMsSQL:
+    name: layer-${sls:stage}-pyodbc-mssql
+    package:
+      artifact: src/layers/pyodbc-layer.zip
+    compatibleRuntimes:
+      - python3.8
+      - python3.9
     compatibleArchitectures:
       - x86_64
 
@@ -29,9 +57,10 @@ functions:
     handler: src/lambdas/testNeoConnector.handler
     name: func-${sls:stage}-testNeoConnector
     layers:
-      - arn:aws:lambda:us-east-1:770693421928:layer:Klayers-python38-pandas:38
-      - arn:aws:lambda:us-east-1:898466741470:layer:psycopg2-py38:2
+      - { Ref: PandasLambdaLayer }
+      - { Ref: Psycopg2LambdaLayer }
       - { Ref: NeoConnectorLambdaLayer }
+      - { Ref: PyodbcMsSQLLambdaLayer }
     events:
       - http:
           path: testneo
