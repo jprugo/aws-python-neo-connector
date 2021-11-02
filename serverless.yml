@@ -11,6 +11,8 @@ provider:
 
 plugins:
   - serverless-python-requirements
+  - serverless-reqvalidator-plugin
+
 layers:
   NeoConnector:
     name: layer-${sls:stage}-NeoConnector
@@ -29,7 +31,17 @@ functions:
     layers:
       - arn:aws:lambda:us-east-1:770693421928:layer:Klayers-python38-pandas:38
       - arn:aws:lambda:us-east-1:898466741470:layer:psycopg2-py38:2
-      - {Ref: NeoConnectorLambdaLayer}
+      - { Ref: NeoConnectorLambdaLayer }
+    events:
+      - http:
+          path: testneo
+          method: get
+          reqValidatorName: ParameterRequestValidator
+          request:
+            parameters:
+              querystrings:
+                bucket: true
+                file: true
 
 resources:
   Resources:
@@ -50,3 +62,10 @@ resources:
           - arn:aws:iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole
           - arn:aws:iam::aws:policy/SecretsManagerReadWrite
           - arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess
+    ParameterRequestValidator:
+      Type: AWS::ApiGateway::RequestValidator
+      Properties:
+        Name: ParameterRequestValidator
+        RestApiId: { Ref: ApiGatewayRestApi }
+        ValidateRequestBody: false
+        ValidateRequestParameters: true

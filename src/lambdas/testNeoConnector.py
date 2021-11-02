@@ -17,6 +17,7 @@ try:
 except (ConnectionException, NotImplementedError) as e:
     print(str(e))
 
+
 signal.signal(signal.SIGALRM, timeout_handler)
 
 
@@ -24,11 +25,10 @@ def handler(event, context):
 
     status_code = 200
 
-    bucket = event['bucket']
-    file = event['file']
-
     try:
         signal.alarm(int(context.get_remaining_time_in_millis() / 1000)-1)
+        bucket = event['queryStringParameters']['bucket']
+        file = event['queryStringParameters']['file']
         print('Executing query...')
         response = DB_NAME.execute_query(
             bucket=bucket, file=file)
@@ -39,29 +39,21 @@ def handler(event, context):
             response = "There is no content to show"
     except (QueryingException, NoSuchConnectionException, AttributeError) as e:
         response = str(e)
-        print(response)
         status_code = 502
+    except NameError as e:
+        response = str(e)
+        status_code = 500
     except TimeoutError:
         response = "Endpoint request timeout"
         status_code = 403
-    except NameError as e:
-        response = str(e)
-        print(response)
-        status_code = 500
 
     body = {
-        "results" if status_code == 200 else "message" : response,
+        "results" if status_code == 200 else "message": response,
     }
-    
-    print(f'body formed: {body}')
-    
-    signal.alarm(0)# This line fixed the issue above!
-    
+
+    signal.alarm(0)  # This line fixed the issue above!
+
     return {
         'statusCode': status_code,
         'body': json.dumps(body)
     }
-
-
-
-
