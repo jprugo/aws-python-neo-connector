@@ -1,6 +1,5 @@
 import json
 import signal
-import time
 # from layers
 from NeoConnector.DBConnector import DBConnector
 from NeoConnector.extras import ConnectionException, NoSuchConnectionException, QueryingException
@@ -9,14 +8,6 @@ from NeoConnector.extras import ConnectionException, NoSuchConnectionException, 
 def timeout_handler(_signal, _frame):
     raise TimeoutError()
 
-
-try:
-    print('establishing connection')
-    DB_NAME = DBConnector(
-        secret_id="arn:aws:secretsmanager:region:account:secret:funny_name", timeout=5)
-    print('connection created!')
-except (ConnectionException, NotImplementedError) as e:
-    print(str(e))
 
 
 signal.signal(signal.SIGALRM, timeout_handler)
@@ -32,14 +23,12 @@ def handler(event, context):
         file = event['queryStringParameters']['file']
         print('Executing query...')
         response = DB_NAME.execute_query(
-            bucket=bucket, file=file)
-        print('fetched data')
+            bucket=bucket, file=file, params = {"fecha": '2021-10-01'})
         response = json.loads(response)
+        print(f'fetched data: {response}')
         if len(response) == 0:
-            status_code = 204,
+            status_code = 204
             response = "There is no content to show"
-        # testing the timeout response
-        time.sleep(3)
     except (QueryingException, NoSuchConnectionException, AttributeError) as e:
         response = str(e)
         status_code = 502
@@ -58,5 +47,5 @@ def handler(event, context):
 
     return {
         'statusCode': status_code,
-        'body': json.dumps(body)
+        'body': json.dumps(body, default= str)
     }
