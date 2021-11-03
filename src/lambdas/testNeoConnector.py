@@ -9,6 +9,14 @@ def timeout_handler(_signal, _frame):
     raise TimeoutError()
 
 
+try:
+    print('establishing connection')
+    DB_NAME = DBConnector(
+        secret_id="arn:aws:secretsmanager:region:account:secret:funny_name", timeout=5)
+    print('connection created!')
+except (ConnectionException, NotImplementedError) as e:
+    print(str(e))
+
 
 signal.signal(signal.SIGALRM, timeout_handler)
 
@@ -21,9 +29,10 @@ def handler(event, context):
         signal.alarm(int(context.get_remaining_time_in_millis() / 1000)-1)
         bucket = event['queryStringParameters']['bucket']
         file = event['queryStringParameters']['file']
+        date = event['queryStringParameters']['date']
         print('Executing query...')
         response = DB_NAME.execute_query(
-            bucket=bucket, file=file, params = {"fecha": '2021-10-01'})
+            bucket=bucket, file=file, params = {"fecha": date})
         response = json.loads(response)
         print(f'fetched data: {response}')
         if len(response) == 0:
