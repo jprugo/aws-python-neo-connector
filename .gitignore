@@ -21,3 +21,8 @@ var/
 
 # Git
 node_modules/
+packages.json
+packages-lock.json
+
+# idea
+.idea
